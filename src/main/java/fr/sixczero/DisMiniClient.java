@@ -10,10 +10,18 @@ import net.arikia.dev.drpc.DiscordEventHandlers;
 import net.arikia.dev.drpc.DiscordRPC;
 import net.arikia.dev.drpc.DiscordRichPresence;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.multiplayer.AddServerScreen;
+import net.minecraft.client.gui.screen.option.KeybindsScreen;
+import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
+import net.minecraft.client.gui.screen.option.VideoOptionsScreen;
+import net.minecraft.client.option.KeyBinding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.desktop.SystemEventListener;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -24,6 +32,15 @@ public class DisMiniClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            Screen currentScreen = client.currentScreen;
+            if (currentScreen != null) {
+                //LOGGER.info("Current screen: {}", currentScreen.getClass().getSimpleName());
+            } else {
+                //LOGGER.info("No screen is currently open.");
+            }
+        });
+
         DiscordRPC.discordInitialize(CLIENT_ID, createEventHandlers(), true);
 
         rich = new DiscordRichPresence.Builder("The mod just turned on !").setBigImage("dismini", "Initialization").build();
@@ -53,9 +70,20 @@ public class DisMiniClient implements ClientModInitializer {
         MinecraftClient client = MinecraftClient.getInstance();
 
         if (client.world != null || client.player != null) {
-            if (client.isInSingleplayer()) new Singleplayer();
-            else if (client.getCurrentServerEntry()!= null) new Multiplayer();
+            if (client.isInSingleplayer()) {
+                switch (screenUtils.getCurrentScreenType()) {
+                    case ADVANCEMENTS_SCREEN -> new AdvancementsScreen();
+                    case DEATH_SCREEN -> new DeathScreen();
+                    case GAMEMENU_SCREEN -> new GameMenuScreen();
+                    case OPTIONS_SCREEN -> new OptionsScreen();
+                    default -> new Singleplayer();
+                }
+            }
+            else if (client.getCurrentServerEntry() != null) {
+                new Multiplayer();
+            }
             else new Unknown();
+
         } else {
             switch (screenUtils.getCurrentScreenType()) {
                 case ADVANCEMENTS_SCREEN -> new AdvancementsScreen();

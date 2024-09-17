@@ -3,10 +3,10 @@ package fr.sixczero.presence.screen;
 import fr.sixczero.DisMiniClient;
 import net.arikia.dev.drpc.DiscordRichPresence;
 
-public class GameMenuScreen {
-    public GameMenuScreen() {
-        DiscordRichPresence presence = new DiscordRichPresence.Builder("Let me take coffe")
-                .setDetails("Pause")
+public class MessageScreen {
+    public MessageScreen() {
+        DiscordRichPresence presence = new DiscordRichPresence.Builder("heheh")
+                .setDetails("Initialization")
                 .setBigImage("unknown", "Unknown Screen")
                 .build();
 
