@@ -1,12 +1,16 @@
 package fr.sixczero;
 
+import com.sun.jna.platform.win32.COM.Unknown;
+import fr.sixczero.presence.Multiplayer;
+import fr.sixczero.presence.Singleplayer;
+import fr.sixczero.presence.screen.*;
+import fr.sixczero.util.presencesEqual;
+import fr.sixczero.util.screenUtils;
 import net.arikia.dev.drpc.DiscordEventHandlers;
 import net.arikia.dev.drpc.DiscordRPC;
 import net.arikia.dev.drpc.DiscordRichPresence;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,28 +20,22 @@ import java.util.TimerTask;
 public class DisMiniClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("dismini");
     private static final String CLIENT_ID = "1285192441351245885";
+    private static DiscordRichPresence rich;
 
     @Override
     public void onInitializeClient() {
         DiscordRPC.discordInitialize(CLIENT_ID, createEventHandlers(), true);
 
-        final int[] test = {1};
+        rich = new DiscordRichPresence.Builder("The mod just turned on !").setBigImage("dismini", "Initialization").build();
+        DisMiniClient.updateRichPresence(rich);
 
         Timer timer = new Timer(true);
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                updateDiscordPresence(String.valueOf(test[0]));
-                MinecraftClient.getInstance().getToastManager().add(new CustomToast(
-                        Text.literal("DisMini"),
-                        Text.literal("Initialized " + test[0]),
-                        Identifier.of("dismini", "textures/dis.png"),
-                        6000,
-                        0xff7289da
-                )); // Future "EasyLib" to-do Custom Toast
-                test[0]++;
+                runUpdate();
             }
-        }, 10000, 10000);
+        }, 3000, 3000);
 
         new Thread(() -> {
             while (true) {
@@ -51,13 +49,34 @@ public class DisMiniClient implements ClientModInitializer {
         }).start();
     }
 
-    private void updateDiscordPresence(String oui) {
-        DiscordRichPresence presence = new DiscordRichPresence.Builder("Playing My Mod")
-                .setDetails("Playing on my server%s".formatted(oui))
-                .setBigImage("sun", "Overworld Sun")
-                .build();
+    private void runUpdate() {
+        MinecraftClient client = MinecraftClient.getInstance();
 
-        DiscordRPC.discordUpdatePresence(presence);
+        if (client.world != null || client.player != null) {
+            if (client.isInSingleplayer()) new Singleplayer();
+            else if (client.getCurrentServerEntry()!= null) new Multiplayer();
+            else new Unknown();
+        } else {
+            switch (screenUtils.getCurrentScreenType()) {
+                case ADVANCEMENTS_SCREEN -> new AdvancementsScreen();
+                case CONNECT_SCREEN -> new ConnectScreen();
+                case DEATH_SCREEN -> new DeathScreen();
+                case GAMEMENU_SCREEN -> new GameMenuScreen();
+                case LOADINGWORLD_SCREEN -> new LoadingWorldScreen();
+                case MULTIPLAYER_SCREEN -> new MultiplayerScreen();
+                case OPTIONS_SCREEN -> new OptionsScreen();
+                case UNKNOWN_SCREEN -> new UnknownScreen();
+                default -> new TitleScreen();
+            }
+        }
+    }
+
+    public static void updateRichPresence(DiscordRichPresence presence) {
+        if (rich == null || !presencesEqual.arePresencesEqual(rich, presence)) {
+            rich = presence;
+            LOGGER.warn("My states change");
+            DiscordRPC.discordUpdatePresence(presence);
+        }
     }
 
     private DiscordEventHandlers createEventHandlers() {

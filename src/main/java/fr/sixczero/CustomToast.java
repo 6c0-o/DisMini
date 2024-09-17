@@ -48,7 +48,6 @@ public class CustomToast implements Toast {
 
         MinecraftClient client = MinecraftClient.getInstance();
         TextRenderer textRenderer = client.textRenderer;
-
         this.width = Math.max(textRenderer.getWidth(this.title), textRenderer.getWidth(this.message)) + 40;
 
         context.fill(160 - this.width, 0, 160, this.getHeight(), 0x80000000); // Black background (ARGB)

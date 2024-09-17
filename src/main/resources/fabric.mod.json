@@ -3,28 +3,22 @@
 	"id": "dismini",
 	"version": "${version}",
 	"name": "DisMini",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "A simple and lightweight mod to get minecraft into discord status",
 	"authors": [
-		"Me!"
+		"6c0"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/6c0-o/DisMini",
+		"sources": "https://github.com/6c0-o/DisMini"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/dismini/icon.png",
 	"environment": "*",
 	"entrypoints": {
-		"main": [
-			"fr.sixczero.DisMini"
-		],
 		"client": [
 			"fr.sixczero.DisMiniClient"
 		]
 	},
-	"mixins": [
-		"dismini.mixins.json"
-	],
 	"depends": {
 		"fabricloader": ">=0.16.5",
 		"minecraft": "~1.21.1",
