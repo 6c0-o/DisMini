@@ -13,15 +13,9 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.multiplayer.AddServerScreen;
-import net.minecraft.client.gui.screen.option.KeybindsScreen;
-import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
-import net.minecraft.client.gui.screen.option.VideoOptionsScreen;
-import net.minecraft.client.option.KeyBinding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.desktop.SystemEventListener;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -35,7 +29,7 @@ public class DisMiniClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             Screen currentScreen = client.currentScreen;
             if (currentScreen != null) {
-                //LOGGER.info("Current screen: {}", currentScreen.getClass().getSimpleName());
+                LOGGER.info("Current screen: {}", currentScreen.getClass().getSimpleName());
             } else {
                 //LOGGER.info("No screen is currently open.");
             }
@@ -70,27 +64,28 @@ public class DisMiniClient implements ClientModInitializer {
         MinecraftClient client = MinecraftClient.getInstance();
 
         if (client.world != null || client.player != null) {
-            if (client.isInSingleplayer()) {
+            try {
                 switch (screenUtils.getCurrentScreenType()) {
                     case ADVANCEMENTS_SCREEN -> new AdvancementsScreen();
                     case DEATH_SCREEN -> new DeathScreen();
                     case GAMEMENU_SCREEN -> new GameMenuScreen();
                     case OPTIONS_SCREEN -> new OptionsScreen();
-                    default -> new Singleplayer();
+                    case STATS_SCREEN -> new StatsScreen();
+                    default -> {
+                        if (client.isInSingleplayer()) new Singleplayer();
+                        else if (client.getCurrentServerEntry() != null) new Multiplayer();
+                        else new Unknown();
+                    }
                 }
+            } catch (Exception e) {
+                LOGGER.error(String.valueOf(e));
             }
-            else if (client.getCurrentServerEntry() != null) {
-                new Multiplayer();
-            }
-            else new Unknown();
-
         } else {
             switch (screenUtils.getCurrentScreenType()) {
-                case ADVANCEMENTS_SCREEN -> new AdvancementsScreen();
                 case CONNECT_SCREEN -> new ConnectScreen();
-                case DEATH_SCREEN -> new DeathScreen();
                 case GAMEMENU_SCREEN -> new GameMenuScreen();
                 case LOADINGWORLD_SCREEN -> new LoadingWorldScreen();
+                case MESSAGE_SCREEN -> new MessageScreen();
                 case MULTIPLAYER_SCREEN -> new MultiplayerScreen();
                 case OPTIONS_SCREEN -> new OptionsScreen();
                 case UNKNOWN_SCREEN -> new UnknownScreen();
